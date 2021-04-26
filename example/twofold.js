@@ -9,6 +9,8 @@
 
 const express = require('express')
 const fs = require('fs')
+const https = require('https')
+const tls = require('tls')
 
 const exampleApp = express()
 
@@ -20,10 +22,15 @@ const switcher = require('../main')({
     "example.com": {
         server: exampleApp,
         // replace these with your certificate / key files for the given domain
-        cert: fs.readFileSync("path/to/certificate.pem"),
-        key: fs.readFileSync("path/to/key.pem")
+        // cert: fs.readFileSync("path/to/certificate.pem"),
+        // key: fs.readFileSync("path/to/key.pem")
     },
-    "another-example.com": require('http').createServer()
+    "another-example.com": require('http').createServer(),
+    "localhost": {
+        server: exampleApp,
+        cert: fs.readFileSync("/Users/johannes/localhost.crt"),
+        key: fs.readFileSync("/Users/johannes/localhost.key")
+    }
 })
 
-switcher.listen(80, 443)
+switcher.listen(8080, 5000)

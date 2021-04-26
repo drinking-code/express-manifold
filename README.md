@@ -27,6 +27,7 @@ If given an object, it must follow the following structure.
 | `httpsServer` | `<net.Server>`\|express-server | Another server, if you want to have a different server for https. If not given, the `server` value will be used. | no | - |
 | `cert` | string\|buffer | The certificate in PEM format for the given domain. | only if `forceHttps`is `true` | - |
 | `key` | string\|buffer | The private keys in PEM format for the given domain. | only if `forceHttps`is `true` | - |
+| `selfSigned` | boolean | Whether the certificate given is self-signed or not. Should be `false` or omitted during production. | no | `false` |
 | `preferHttps` | boolean | Will redirect http to https if `Upgrade-Insecure-Requests` is set to "1", and certificate and private keys are provided. | no | `true` |
 | `forceHttps` | boolean | Will always redirect http to https, regardless of the `preferHttps` mechanism. | no | `false` |
 
@@ -34,7 +35,7 @@ The server given for `server` will listen on both the first, and the second port
 
 This function returns an express server `switcher` which acts like an appended server. That means if you `.get()` a path that a server on a given domain does not handle, it will fallback to that function. (see [examples](#examples) for examples)
 
-### `switcher.listen([httpPort[, httpsPort[, host[, backlog]]]][, callback])`
+### `switcher.listen([httpPort[, httpsPort]])`
 
 The returned `switcher`'s functions behave the same as in a normal express app, except for the `.listen()` function. Instead of using one port it will use two.
 - The first port is meant to be the HTTP-port, and is used for all given servers for `server`. In production this should be `80`.
