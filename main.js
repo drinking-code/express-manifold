@@ -1,5 +1,4 @@
 const express = require('express');
-const net = require('net')
 const https = require('https')
 const tls = require('tls')
 const httpSwitcher = express();
@@ -7,7 +6,7 @@ const httpsSwitcher = express();
 const switcher = express();
 
 const expressConstructor = express().constructor
-const isServer = server => server?.constructor === expressConstructor || server instanceof net.Server
+const isServer = server => server?.constructor === expressConstructor
 
 function manifold(servers) {
     const secureContext = {};
@@ -92,46 +91,57 @@ function manifold(servers) {
         // get "host"; remove port number
         const host = req.get('Host').replace(/:\d+/, '')
         // check if server is given for domain
-        if (servers[host]?.server) {
-            if (
-                servers[host]._https &&
-                (servers[host].forceHttps === true
-                    || (servers[host].preferHttps === true && req.get('Upgrade-Insecure-Requests') === '1'))
-            )
-                return res.redirect('https://' + host + (ports[1] !== 443 ? (':' + ports[1]) : '') + req.url)
-            else
-                servers[host].server(req, res, next);
-        } else
-            next()
+        if (!servers[host]?.server) return next()
+        // check if redirect to https is suitable
+        if (
+            // http over tls is activated for this domain
+            servers[host]._https &&
+            // either "forceHttps" is set to true OR
+            // "preferHttps" is set to true and browser prefers https
+            (servers[host].forceHttps === true
+                || (servers[host].preferHttps === true && req.get('Upgrade-Insecure-Requests') === '1'))
+        ) // redirect redirect to corresponding https url (and add https port if not 443)
+            return res.redirect('https://' + host + (ports[1] !== 443 ? (':' + ports[1]) : '') + req.url)
+        else // https redirect is not suitable => let http server handle request
+            servers[host].server(req, res, next);
+
     })
 
     httpsSwitcher.use((req, res, next) => {
+        // get "host"; remove port number
         const host = req.get('Host').replace(/:\d+/, '')
-        if (servers[host])
-            if (servers[host].httpsServer)
-                servers[host].httpsServer(req, res, next)
-            else
-                return res.status(400).end()
-        else
-            next()
+        // check if domain is given at all
+        if (servers[host]) return next()
+        // check if https server is given for domain
+        if (!servers[host].httpsServer) return res.status(400).end()
+
+        servers[host].httpsServer(req, res, next)
     })
 
-    switcher.listen = (httpPort, httpsPort) => {
-        httpPort = httpPort || 80
-        httpsPort = httpsPort || httpPort
+    switcher.listen = function listen() {
+        // set ports if given
+        ports = ports.map((port, i) =>
+            arguments[i] === 'number' ? arguments[i] : port
+        )
 
-        httpSwitcher.listen(httpPort)
+        const args = Array.from(arguments)
+        const httpPort = args.shift()
+        const httpsPort = args.shift()
 
-        https.createServer({
+        // listen http server
+        const httpSwitcherServer = httpSwitcher.listen(httpPort, ...args)
+
+        // listen https server
+        const httpsSwitcherServer = https.createServer({
             SNICallback: (domain, callback) => {
                 if (secureContext[domain])
                     callback(null, secureContext[domain])
                 else
                     callback(new Error(`Certificate for ${domain} invalid or missing`))
             }
-        }, httpsSwitcher).listen(httpsPort)
+        }, httpsSwitcher).listen(httpsPort, ...args)
 
-        ports = [httpPort, httpsPort]
+        return [httpSwitcherServer, httpsSwitcherServer]
     }
 
     return switcher

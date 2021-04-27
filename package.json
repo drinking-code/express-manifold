@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
-    "example-twofold": "node example/twofold.js"
+    "example-twofold": "node example/twofold.js",
+    "generate-example-certificate": "mkdir -p path && mkdir -p path/to && openssl req -x509 -out path/to/certificate.crt -keyout path/to/key.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost'"
   },
   "keywords": [],
   "author": "",

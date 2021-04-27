@@ -1,36 +1,48 @@
-/*
+/**
 *
 * THIS EXAMPLE DOES NOT WORK OUT OF THE BOX,
-* because:
-* 1. the given domains do not point to the ip address this server runs on
-* 2. the paths given for certificate and key are not files
+* to make this work
+* 0. have openssl installed
+* 1. run `npm run generate-example-certificate`
+* 2. change "example.com" in line 37 to "localhost"
+* (3. change the ports in line 48)
+*
+* after you followed these steps, run `npm run example-twofold` to start the servers
+* and visit localhost (or localhost:<first_port>) to see that exampleApp is handling the request.
+*
+* (Your browser may warn you about the invalid certificate. This is because generate-example-certificate
+* generates a self-signed certificate, that the browser cannot validate. You can safely add an exception
+* for this certificate.)
 *
 */
 
 const express = require('express')
+const manifold = require('../main')
 const fs = require('fs')
-const https = require('https')
-const tls = require('tls')
 
+// create an express server
 const exampleApp = express()
+const anotherExample = express()
 
 exampleApp.get('/', (req, res) => {
     res.send('Hello World!').end()
 })
 
-const switcher = require('../main')({
+anotherExample.get('/', (req, res) => {
+    res.send('Hello other World!').end()
+})
+
+// feed the server, certificate, and key into express-manifold
+const switcher = manifold({
     "example.com": {
         server: exampleApp,
         // replace these with your certificate / key files for the given domain
-        // cert: fs.readFileSync("path/to/certificate.pem"),
-        // key: fs.readFileSync("path/to/key.pem")
+        // or run `npm run generate-example-certificate` to create a certificate and key at these paths
+        cert: fs.readFileSync("path/to/certificate.crt"),
+        key: fs.readFileSync("path/to/key.key"),
+        selfSigned: true
     },
-    "another-example.com": require('http').createServer(),
-    "localhost": {
-        server: exampleApp,
-        cert: fs.readFileSync("/Users/johannes/localhost.crt"),
-        key: fs.readFileSync("/Users/johannes/localhost.key")
-    }
+    "another-example.com": anotherExample
 })
 
-switcher.listen(8080, 5000)
+switcher.listen(80, 443)
