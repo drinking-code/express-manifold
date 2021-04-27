@@ -1,17 +1,29 @@
 {
-  "name": "express-manifold",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "start": "node main.js",
-    "example-twofold": "node example/twofold.js",
-    "generate-example-certificate": "mkdir -p path && mkdir -p path/to && openssl req -x509 -out path/to/certificate.crt -keyout path/to/key.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost'"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.17.1"
-  }
+    "name": "express-manifold",
+    "version": "1.0.0",
+    "description": "Serve multiple websites / webapps for different domains from a single server.",
+    "main": "main.js",
+    "scripts": {
+        "start": "node main.js",
+        "example-twofold": "node example/twofold.js",
+        "generate-example-certificate": "mkdir -p path && mkdir -p path/to && openssl req -x509 -out path/to/certificate.crt -keyout path/to/key.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost'"
+    },
+    "author": "drinking-code",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/drinking-code/express-manifold.git"
+    },
+    "keywords": [
+        "express",
+        "http",
+        "https"
+    ],
+    "bugs": {
+        "url": "https://github.com/drinking-code/express-manifold/issues"
+    },
+    "homepage": "https://github.com/drinking-code/express-manifold#readme",
+    "dependencies": {
+        "express": "^4.17.1"
+    }
 }
